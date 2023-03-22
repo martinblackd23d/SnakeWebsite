@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<style>
+		body {
+			background-color: rgb(236, 195, 141);
+			font-family: cursive;
+			font-size: 50px;
+		}
+		button {
+			background-color: rgb(122, 99, 68);
+			border-radius: 20px;
+			height: 80px;
+			width: 250px;
+			font-family: cursive;
+			font-size: 50px;
+			border-width: 5px;
+		}
+		canvas {
+			border-radius: 20px;
+			border-width: 20px;
+		}
+		.slider {
+			width: 200px;
+			background: rgb(122, 99, 68);
+		}
+		.gameover {
+			text-align: center;
+		}
+		.canvas {
+			float: left;
+		}
+		.score {
+			float: left;
+		}
+		.buttons {
+			clear: left;
+		}
+	</style>
+</head>
+<body>
+	<div>
+		<label id="gameover" visibility="hidden" class="gameover">Game over</label>
+	</div>
+	<div>
+		<div class="canvas">
+			<canvas id="canv" width="500" height="500"></canvas>
+		</div>
+		<div class="score">
+			<label id="score">Score: 0</label>
+			<br>
+			<label id="best">High score: 0</label>
+		</div>
+	</div>
+	<div class="buttons">
+		<div>
+			<button type="button" onclick="playGame();" id="play">Play</button>
+			<button type="button" onclick="changeSettings();" id="settings">Settings</button>
+		</div>
+		<div>
+			<label id="speedtext" visibility="hidden">Speed</label>
+			<input class="slider" type="range" min="0" max="2" value="1" oninput="var l=[750, 500, 250];speed=l[this.value];" id="speedslider" visibility="hidden">
+		</div>
+	</div>
+
+	<script>
+		var dir = -10;
+		var input = -10;
+		var speed = 500;
+		var ctx = document.getElementById("canv").getContext("2d");
+		var snake;
+		var food;
+		var border = 3;
+		var score = 0;
+		var best = 0;
+		var setvis = false;
+		setup();
+		hideSettings();
+		document.getElementById("best").visibility = "hidden";
+
+		var slider = document.getElementById("speedslider");
+
+		document.addEventListener("keydown", (e) => {
+			if (e.key == "w" || e.key == "ArrowUp") {
+				input = -1;
+			} else if (e.key == "s" || e.key == "ArrowDown") {
+				input = 1;
+			} else if (e.key == "a" || e.key == "ArrowLeft") {
+				input = -10;
+			} else if (e.key == "d" || e.key == "ArrowRight") {
+				input = 10;
+			}
+		})
+
+		function draw(loc, type) {
+			if (type == "bg") {
+				ctx.fillStyle = "#222222";
+				ctx.fillRect(getx(loc)*50, gety(loc)*50, 50, 50);
+				return;
+			}
+			var colors = {"head":"#00AA00", "body":"#00FF00", "food":"#FF0000"}
+			ctx.fillStyle = colors[type];
+			ctx.beginPath();
+			ctx.roundRect(getx(loc)*50 + border, gety(loc)*50 + border, 50 - border*2, 50 - border*2, 5);
+			ctx.stroke();
+			ctx.fill();
+		}
+
+		function placeFood(snake) {
+			while (true) {
+				food = Math.floor(Math.random() * 100);
+				if (!(snake.includes(food))) {
+					return food
+				}
+			}
+		}
+
+		function getx(n) {
+			return (n - (n % 10)) / 10;
+		}
+
+		function gety(n) {
+			return n % 10;
+		}
+
+		function sleep() {
+			return new Promise(resolve => setTimeout(resolve, speed));
+		}
+
+		function setup() {
+			document.getElementById("gameover").style.visibility = "hidden";
+			score = 0;
+			dir = -10;
+			input = -10;
+			for (let x = 0; x < 10; x++){
+				for (let y = 0; y < 10; y++) {
+					draw(10*x + y, "bg");
+				}
+			}
+
+			snake = [44, 54, 64];
+			ctx.fillStyle = "#00AA00";
+			for (let i in snake) {
+				draw(snake[i], "body");
+			}
+			draw(snake[0], "head");
+		}
+
+		async function playGame() {
+			document.getElementById("play").style.visibility = "hidden";
+			document.getElementById("settings").style.visibility = "hidden";
+			hideSettings();
+			setup();
+			food = placeFood(snake);
+			draw(food, "food");
+
+			while (true) {
+				await sleep();
+				if (input != -1*dir) {
+					dir = input;
+				}
+
+				if (dir == 1 && gety(snake[0]) == 9) {
+					break;
+				}
+				if (dir == -1 && gety(snake[0]) == 0) {
+					break;
+				}
+				if (dir == 10 && getx(snake[0]) == 9) {
+					break;
+				}
+				if (dir == -10 && getx(snake[0]) == 0) {
+					break;
+				}
+				if (snake.includes(snake[0] + dir)) {
+					break;
+				}
+
+				draw(snake[0], "body");
+
+				snake.unshift(snake[0] + dir);
+				draw(snake[0], "head");
+				if (food == snake[0]) {
+					food = placeFood(snake);
+					draw(food, "food");
+
+					score++;
+					document.getElementById("score").textContent = "Score: " + score;
+				} else {
+					let i = snake.pop();
+					draw(i, "bg");
+				}
+			}
+			document.getElementById("play").style.visibility = "visible";
+			document.getElementById("settings").style.visibility = "visible";
+			document.getElementById("gameover").style.visibility = "visible";
+			if (score > best) {
+				best = score;
+			}
+			document.getElementById("best").textContent = "High score: " + best;
+
+			document.getElementById("best").visibility = "visible";
+		}
+
+		function changeSettings() {
+			if (setvis) {
+				setvis = false;
+				hideSettings();
+			} else {
+				setvis = true
+				showSettings();
+			}
+		}
+		
+		function showSettings() {
+			document.getElementById("settings").textContent = "Close";
+			document.getElementById("speedslider").style.visibility = "visible";
+			document.getElementById("speedtext").style.visibility = "visible";
+		}
+		function hideSettings() {
+			document.getElementById("settings").textContent = "Settings";
+			document.getElementById("speedslider").style.visibility = "hidden";
+			document.getElementById("speedtext").style.visibility = "hidden";
+		}
+
+	</script>
+</body>
+</html>
