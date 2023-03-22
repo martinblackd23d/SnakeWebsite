@@ -14,18 +14,40 @@
 			width: 250px;
 			font-family: cursive;
 			font-size: 50px;
-			border-width: 5px;
+			border-width: 0px;
 		}
 		canvas {
 			border-radius: 20px;
 			border-width: 20px;
+			border-style: solid;
+			border-color: rgb(122, 99, 68);
 		}
 		.slider {
+			-webkit-appearance: none;
+			appearance: none;
 			width: 200px;
-			background: rgb(122, 99, 68);
+			height: 20px;
+			background: #222222;
+			outline: none;
+			border-radius: 10px;
+
+		}
+		.slider::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 40px;
+			height: 40px;
+			background:rgb(122, 99, 68);
+			border-radius: 50%;
 		}
 		.gameover {
 			text-align: center;
+			background-color: rgb(122, 99, 68);
+			border-radius: 20px;
+			border-width: 0px;
+			display: block;
+			width: 540px;
+			margin-bottom: 15px;
 		}
 		.canvas {
 			float: left;
